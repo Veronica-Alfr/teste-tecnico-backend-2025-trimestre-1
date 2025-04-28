@@ -1,0 +1,27 @@
+services:
+  backend:
+    container_name: app_backend
+    build: ./backend
+    restart: always
+    ports:
+      - "3001:3001"
+    working_dir: /backend-app
+    volumes:
+      - ./backend:/backend-app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      timeout: 10s
+      retries: 5
+    expose:
+      - 3001
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: app_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    expose:
+      - 6379
