@@ -2,6 +2,7 @@ import { BadRequestException, Controller, Post, Res, UploadedFile, UseIntercepto
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { Express, Response } from 'express';
+import { memoryStorage } from 'multer';
 
 @Controller('upload')
 export class UploadController {
@@ -9,6 +10,7 @@ export class UploadController {
 
   @Post('video')
   @UseInterceptors(FileInterceptor('video', {
+    storage: memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
       if (!file.mimetype.startsWith('video/')) {
