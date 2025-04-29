@@ -25,7 +25,6 @@ export class VideoService {
     // const cachedFile: Buffer | null = await this.cacheManager.get<Buffer>(filename);
     const base64Data = await this.cacheManager.get<string>(filename);
     const cachedFile = base64Data ? Buffer.from(base64Data, 'base64') : null
-    // console.log('cachedFile AQUI =>', cachedFile); 
 
     console.log(`Checking cache for name: ${filename}`, cachedFile ? 'Found' : 'Not found');
 
@@ -79,13 +78,13 @@ export class VideoService {
     if (!rangeHeader) {
         const stream = createReadStream(filePath);
         return {
-        status: 200,
-        headers: {
-            'Content-Length': size,
-            'Content-Type': 'video/mp4',
-            'Accept-Ranges': 'bytes',
-        },
-        stream,
+            status: 200,
+            headers: {
+                'Content-Length': size,
+                'Content-Type': 'video/mp4',
+                'Accept-Ranges': 'bytes',
+            },
+            stream,
         };
     }
 

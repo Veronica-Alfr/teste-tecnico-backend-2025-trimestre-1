@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
 import { UploadController } from './upload.controller';
 import { UploadService } from './upload.service';
+import { SharedCacheModule } from '../shared-cache/shared-cache.module';
 
 @Module({
-  imports: [CacheModule.register()], 
+  imports: [SharedCacheModule],
   controllers: [UploadController],
   providers: [UploadService],
 })
