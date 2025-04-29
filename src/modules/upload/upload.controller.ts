@@ -1,7 +1,8 @@
-import { BadRequestException, Controller, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, HttpCode, 
+  ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, 
+  BadRequestException} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
-import { Express, Response } from 'express';
 import { memoryStorage } from 'multer';
 
 @Controller('upload')
@@ -9,19 +10,28 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('video')
-  @UseInterceptors(FileInterceptor('video', {
-    storage: memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-      if (!file.mimetype.startsWith('video/')) {
-        return cb(new BadRequestException('Only video files are allowed!'), false);
-      }
-      cb(null, true);
-    }
-  }))
-
-  async uploadFile(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
+  @HttpCode(204)
+  @UseInterceptors(
+    FileInterceptor('video', {
+      storage: memoryStorage(),
+    })
+  )
+  async uploadFile(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ 
+            maxSize: 10 * 1024 * 1024, 
+            message: 'File too large, max size is 10MB!' 
+          }),
+          new FileTypeValidator({ 
+            fileType: /^video\/(mp4|quicktime|x-msvideo|webm|x-matroska|x-flv|x-ms-wmv)$/
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
     await this.uploadService.processFile(file);
-    return res.status(204).send();
-  }
+  };
 };
