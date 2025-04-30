@@ -5,11 +5,6 @@ services:
     restart: always
     ports:
       - "3001:3001"
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - CACHE_TTL=60
-      - STORAGE_PATH=/app/videos
     volumes:
       - video_storage:/app/videos
     networks:
@@ -19,28 +14,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    depends_on:
-      redis:
-        condition: service_healthy
-
-  redis:
-    image: redis:7.4.3-alpine3.21
-    container_name: app_redis
-    restart: always
-    command: redis-server --save 60 1 --loglevel warning
-    volumes:
-      - redis_data:/data
-    networks:
-      - app_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
-  redis_data:
-    driver: local
   video_storage:
     driver: local
     driver_opts:
