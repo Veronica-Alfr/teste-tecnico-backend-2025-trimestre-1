@@ -10,8 +10,4 @@ export class VideoCacheService implements IVideoCache {
     async getFromCache(filename: string): Promise<Buffer | null> {
         return this.cacheManager.get<Buffer>(`video:${filename}`);
     };
-
-    async setToCache(filename: string, buffer: Buffer): Promise<void> {
-        await this.cacheManager.set(`video:${filename}`, buffer, 60000);
-    };
 };

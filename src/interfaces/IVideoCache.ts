@@ -1,6 +1,5 @@
 export interface IVideoCache {
     getFromCache(filename: string): Promise<Buffer | null>;
-    setToCache(filename: string, buffer: Buffer): Promise<void>;
 };
 
 export interface IUploadCache {

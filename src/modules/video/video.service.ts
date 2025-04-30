@@ -12,12 +12,7 @@ constructor(
 ) {};
 
     async getVideoStream(filename: string, rangeHeader?: string) {
-        let buffer = await this.videoCache.getFromCache(filename);
-
-        if (!buffer) {
-            buffer = await this.fileStorage.getFileBuffer(filename);
-            await this.videoCache.setToCache(filename, buffer);
-        };
+        let buffer = await this.videoCache.getFromCache(filename) || await this.fileStorage.getFileBuffer(filename);
     
         const contentType = await this.detectContentType(buffer);
         return this.processRange(buffer, rangeHeader, contentType);
