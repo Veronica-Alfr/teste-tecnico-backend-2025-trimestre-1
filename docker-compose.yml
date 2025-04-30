@@ -8,6 +8,7 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - CACHE_TTL=60
       - STORAGE_PATH=/app/videos
     volumes:
       - video_storage:/app/videos
@@ -39,7 +40,13 @@ services:
 
 volumes:
   redis_data:
+    driver: local
   video_storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./videos
 
 networks:
   app_network:

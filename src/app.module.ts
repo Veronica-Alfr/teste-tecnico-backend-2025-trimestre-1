@@ -15,12 +15,12 @@ import { UploadCacheService } from './services/upload-cache/upload-cache.service
     CacheModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
-        store: () => redisStore({
+        store: await redisStore({
           socket: {
-            host: config.get('REDIS_HOST', 'localhost'),
-            port: config.get('REDIS_PORT', 6379),
+            host: config.get<string>('REDIS_HOST', 'redis'),
+            port: config.get<number>('REDIS_PORT', 6379),
           },
-          ttl: config.get('CACHE_TTL', 60),
+          ttl: config.get<number>('CACHE_TTL', 60),
         }),
       }),
       inject: [ConfigService],
