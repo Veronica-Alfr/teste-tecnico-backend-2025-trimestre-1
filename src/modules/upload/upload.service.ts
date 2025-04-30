@@ -1,51 +1,49 @@
-import { Injectable, Inject, BadRequestException, Logger, InternalServerErrorException } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { fileTypeFromBuffer } from 'file-type';
-import { writeFile, mkdir } from 'fs/promises';
-import { join, extname } from 'path';
-import { existsSync } from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import { InvalidFileTypeError } from 'src/custom/error/errors';
+import { IFileWriter } from 'src/interfaces/IFileWriter';
+import { IUploadCache } from 'src/interfaces/IVideoCache';
 
 @Injectable()
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
 
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+  constructor(
+    @Inject('IUploadCache') private cacheService: IUploadCache,
+    @Inject('IFileWriter') private fileWriter: IFileWriter,
+  ) {};
 
   async processFile(file: Express.Multer.File): Promise<void> {
+    try {
+      await this.validateFile(file);
+
+      const filename = file.originalname;
+
+      await this.cacheService.cacheFile(filename, file.buffer);
+
+      await this.fileWriter.writeFile(filename, file.buffer);
+
+      this.logger.log(`File processed successfully: ${filename}`);
+
+    } catch (error) {
+      this.logger.error(`Upload failed: ${error.message}`);
+
+      if (error instanceof InvalidFileTypeError) {
+        throw new BadRequestException(error.message);
+      };
+
+      throw new InternalServerErrorException('File processing failed');
+    };
+  };
+
+  private async validateFile(file: Express.Multer.File): Promise<void> {
     if (!file) {
-      throw new BadRequestException('You need to upload a video file!');
-    }
+      throw new BadRequestException('');
+    };
 
     const type = await fileTypeFromBuffer(file.buffer);
-  
     if (!type?.mime.startsWith('video/')) {
-      throw new BadRequestException('Only video files are allowed!');
-    }
-
-    const fileId = uuidv4();
-    const cacheKey = `video:${fileId}`;
-    const fileName = `${fileId}${extname(file.originalname)}`;
-    const videosFolderPath = join(process.cwd(), 'videos');
-    const uploadPath = join(videosFolderPath, fileName);
-
-    try {
-      this.logger.debug(`Processing file: ${fileName}`);
-
-      await this.cacheManager.set(cacheKey, file.buffer, 60000);
-      this.logger.debug(`Cached: ${cacheKey}`);
-
-      if (!existsSync(videosFolderPath)) {
-        await mkdir(videosFolderPath, { recursive: true });
-      }
-
-      await writeFile(uploadPath, file.buffer);
-      this.logger.log(`File stored: ${fileName}`);
-    } catch (error) {
-      this.logger.error(`Processing failed: ${error.message}`);
-      await this.cacheManager.del(cacheKey);
-      throw new InternalServerErrorException('File processing failed');
-    }
+      throw new InvalidFileTypeError('Invalid file type');
+    };
   };
 };

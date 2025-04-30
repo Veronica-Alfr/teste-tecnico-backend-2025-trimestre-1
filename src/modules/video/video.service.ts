@@ -1,119 +1,62 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { createReadStream, statSync } from 'fs';
-import { join } from 'path';
-import { Cache } from 'cache-manager';
-import { Inject } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Readable } from 'stream';
+import { Inject, Injectable } from '@nestjs/common';
+import { fileTypeFromBuffer } from 'file-type';
+import { IVideoCache } from 'src/interfaces/IVideoCache';
+import { IFileStorage } from 'src/interfaces/IFileStorage';
+import { InvalidRangeError, VideoNotFoundError } from 'src/custom/error/errors';
 
 @Injectable()
 export class VideoService {
-    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {};
-
-    private getFileInfo(filename: string) {
-        const filePath = join(process.cwd(), 'videos', filename);
-
-        try {
-            const stats = statSync(filePath);
-            return { filePath, size: stats.size };
-        } catch {
-            throw new NotFoundException('File Not Found!');
-        }
-    };
+constructor(
+    @Inject('IVideoCache') private readonly videoCache: IVideoCache,
+    @Inject('IFileStorage') private readonly fileStorage: IFileStorage,
+) {};
 
     async getVideoStream(filename: string, rangeHeader?: string) {
-    // const cachedFile: Buffer | null = await this.cacheManager.get<Buffer>(filename);
-    const base64Data = await this.cacheManager.get<string>(filename);
-    const cachedFile = base64Data ? Buffer.from(base64Data, 'base64') : null
+        let buffer = await this.videoCache.getFromCache(filename);
 
-    console.log(`Checking cache for name: ${filename}`, cachedFile ? 'Found' : 'Not found');
-
-    if (cachedFile) {
-        const size = cachedFile.length;
-        if (!rangeHeader) {
-            const stream = Readable.from(cachedFile);
-            return {
-                status: 200,
-                headers: {
-                'Content-Length': size,
-                'Content-Type': 'video/mp4',
-                'Accept-Ranges': 'bytes',
-                },
-                stream,
-            };
+        if (!buffer) {
+            buffer = await this.fileStorage.getFileBuffer(filename);
+            await this.videoCache.setToCache(filename, buffer);
         };
+    
+        const contentType = await this.detectContentType(buffer);
+        return this.processRange(buffer, rangeHeader, contentType);
+    };
 
-        const [unit, range] = rangeHeader.split('=');
-            if (unit !== 'bytes') {
-            throw new NotFoundException('Invalid Range');
+    private async detectContentType(buffer: Buffer): Promise<string> {
+        const type = await fileTypeFromBuffer(buffer);
+        return type?.mime || 'application/octet-stream';
+    };
+
+    private processRange(buffer: Buffer, rangeHeader?: string, contentType?: string) {
+        const fileSize = buffer.length;
+        let start = 0;
+        let end = fileSize - 1;
+
+        if (rangeHeader) {
+            const [unit, range] = rangeHeader.split('=');
+            if (unit !== 'bytes') throw new InvalidRangeError('Unsupported range unit');
+
+            const parts = range.split('-');
+            start = Number.isNaN(parseInt(parts[0], 10)) ? 0 : parseInt(parts[0], 10);
+            end = Number.isNaN(parseInt(parts[1], 10)) ? fileSize - 1 : parseInt(parts[1], 10);
+
+            if (isNaN(start) || start < 0) start = 0;
+            if (isNaN(end) || end >= fileSize) end = fileSize - 1;
+            if (start > end) throw new InvalidRangeError('Invalid range values');
         };
-
-        const [startStr, endStr] = range.split('-');
-        let start = parseInt(startStr, 10);
-        let end = endStr ? parseInt(endStr, 10) : size - 1;
-
-        if (isNaN(start) || start < 0) start = 0;
-        if (isNaN(end) || end >= size) end = size - 1;
-        if (start > end) {
-            throw new NotFoundException('Invalid Range');
-        }
-
-        const chunk = cachedFile.slice(start, end + 1);
-        const stream = Readable.from(chunk);
 
         return {
-        status: 206,
-        headers: {
-            'Content-Range': `bytes ${start}-${end}/${size}`,
-            'Accept-Ranges': 'bytes',
-            'Content-Length': chunk.length,
-            'Content-Type': 'video/mp4',
-        },
-        stream,
-        };
-    };
-
-    const { filePath, size } = this.getFileInfo(filename);
-
-    if (!rangeHeader) {
-        const stream = createReadStream(filePath);
-        return {
-            status: 200,
             headers: {
-                'Content-Length': size,
-                'Content-Type': 'video/mp4',
-                'Accept-Ranges': 'bytes',
-            },
-            stream,
-        };
-    }
-
-    const [unit, range] = rangeHeader.split('=');
-    if (unit !== 'bytes') {
-        throw new NotFoundException('Invalid Range');
-    };
-
-    const [startStr, endStr] = range.split('-');
-    let start = parseInt(startStr, 10);
-    let end = endStr ? parseInt(endStr, 10) : size - 1;
-
-    if (isNaN(start) || start < 0) start = 0;
-    if (isNaN(end) || end >= size) end = size - 1;
-    if (start > end) {
-        throw new NotFoundException('Invalid Range');
-    };
-
-    const stream = createReadStream(filePath, { start, end });
-
-    return {
-            status: 206,
-            headers: {
-            'Content-Range': `bytes ${start}-${end}/${size}`,
-            'Accept-Ranges': 'bytes',
+            'Content-Type': contentType,
             'Content-Length': end - start + 1,
-            'Content-Type': 'video/mp4',
+            'Accept-Ranges': 'bytes',
+            ...(rangeHeader && {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`
+                })
             },
-            stream,
+            statusCode: rangeHeader ? 206 : 200,
+            buffer: buffer.subarray(start, end + 1)
         };
     };
 };

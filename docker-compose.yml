@@ -5,23 +5,42 @@ services:
     restart: always
     ports:
       - "3001:3001"
-    working_dir: /backend-app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STORAGE_PATH=/app/videos
     volumes:
-      - .:/backend-app
+      - video_storage:/app/videos
+    networks:
+      - app_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
       timeout: 10s
       retries: 5
-    expose:
-      - 3001
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
 
   redis:
     image: redis:7.4.3-alpine3.21
     container_name: app_redis
     restart: always
-    ports:
-      - "6379:6379"
-    expose:
-      - 6379
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+  video_storage:
+
+networks:
+  app_network:
+    driver: bridge

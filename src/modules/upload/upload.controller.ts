@@ -1,13 +1,12 @@
 import { Controller, Post, UseInterceptors, UploadedFile, HttpCode, 
-  ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, 
-  BadRequestException} from '@nestjs/common';
+  ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { memoryStorage } from 'multer';
 
 @Controller('upload')
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(private readonly uploadService: UploadService) {};
 
   @Post('video')
   @HttpCode(204)

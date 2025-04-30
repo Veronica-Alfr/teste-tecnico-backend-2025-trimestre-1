@@ -1,18 +1,20 @@
-import { Controller, Get, Header, Param, Req, Res } from '@nestjs/common';
+import { Controller, Get, Param, Headers, Res, Header } from '@nestjs/common';
+import { Response } from 'express';
 import { VideoService } from './video.service';
-import { Request, Response } from 'express';
 
-@Controller('static/video')
+@Controller('static')
 export class VideoController {
-  constructor(private readonly videoService: VideoService) {};
+  constructor(private readonly videoService: VideoService) {}
 
-  @Get(':filename')
-  async streamVideo(@Param('filename') filename: string, @Req() req: Request, @Res() res: Response) {
-    const rangeHeader = req.headers.range;
-
-    const { status, headers, stream } = await this.videoService.getVideoStream(filename, rangeHeader);
-
-    res.writeHead(status, headers);
-    stream.pipe(res);
-  };
-};
+  @Get('video/:filename')
+  @Header('Accept-Ranges', 'bytes')
+  async streamVideo(
+    @Param('filename') filename: string,
+    @Headers('range') range: string,
+    @Res() res: Response
+  ) {
+    const { buffer, headers, statusCode } = await this.videoService.getVideoStream(filename, range);
+    res.status(statusCode).set(headers);
+    return res.send(buffer);
+  }
+}
