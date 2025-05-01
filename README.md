@@ -25,9 +25,10 @@
 
     ⚠ Antes de começar, seu docker-compose precisa estar na versão 2.29 e o docker na versão 27.2 de preferência.
 
-    ⚠ Suba o projeto completo usando o comando docker-compose up --build na raiz do projeto.
+    ⚠ Suba o projeto completo usando o comando `docker-compose up --build` na raiz do projeto.
+    ⚠ Para teste de desenvolvimento suba o docker com o comando `docker-compose -f env-dev/docker-compose.dev.yml up --build`.
 
-    - Esses serviços inicializarão o contêiner chamado app_backend.
+    - Esses serviços inicializarão o contêiner chamado app_backend_prod ou app_backend (teste).
 
     - A partir daqui, você pode executar o contêiner via CLI ou abri-los no VS Code.
 
