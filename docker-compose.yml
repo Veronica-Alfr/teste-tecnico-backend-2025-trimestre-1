@@ -1,27 +1,17 @@
 services:
   backend:
-    container_name: app_backend
+    container_name: app_backend_prod
     build: .
-    restart: always
+    restart: unless-stopped
     ports:
       - "3001:3001"
     volumes:
       - video_storage:/app/videos
     networks:
       - app_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
 volumes:
   video_storage:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./videos
 
 networks:
   app_network:
