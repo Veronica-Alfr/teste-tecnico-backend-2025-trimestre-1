@@ -1,47 +1,65 @@
-# teste-tecnico-backend-2025-trimestre-1
-Teste técnico para a posição de Backend Dev. Edição do primeiro trimestre de 2025.
+<main>
+  <h1 align="center">Upload/Get Video</h1>
 
-## A proposta: Upload e Streaming de Vídeos + Cache + Docker
+  <p>
+    O projeto realiza upload de vídeos de vários formatos, e os salva no cache por 60s. Assim, ele é trazido do cache ou da pasta criada no backend do docker. 
+  </p>
 
-A ideia é bem simples:
+  <h3>Status do Projeto</h3>
+  
+    Requisitos obrigatórios finalizados ✅
 
-- [ ] uma rota `POST /upload/video` que recebe um **único vídeo** com limite de 10MB e
-    - [ ] retornando o código de status 400 em caso de arquivo com tipo diferente de vídeo
-    - [ ] retornando o código de status 400 em caso de arquivo com tamanho maior que 10MB
-    - [ ] retornando o código de status 204 em caso de sucesso
-- [ ] uma rota `GET /static/video/:filename` que pode receber um Range por cabeçalho para indicar o offset de streaming
-    - [ ] retornando o código de status 404 em caso de não existência de um arquivo
-    - [ ] retornando o conteúdo completo caso nenhum range seja especificado com código de status 200 em caso o arquivo exista no servidor
-    - [ ] retornando a fatia desejada do conteúdo caso o range seja especificado com código de status 206
-    caso o arquivo exista no servidor
+  <h3>+ Tarefas 👩🏽‍💻</h3>
 
-Para infra, vamos usar o seguinte conjunto:
+    - Adicionar testes integrados
 
-- [ ] um arquivo `Dockerfile` para fazer o build da imagem a partir da imagem `node:22-alpine`;
-- [ ] um arquivo `docker-compose.yml` para compor um ambiente com algum serviço de cache de sua escolha.
+  <h3>Observações</h3>
+  
+    Esse é um projeto com instruções e licença 📜 registrados aqui -> env-dev/README.md
 
-```plain
-A ideia inicial é que os arquivos sejam armazenados dentro do volume do container da aplicação.
-Teremos um cache de 60s de TTL para cada arquivo.
-O arquivo deve estar disponível antes mesmo de ser persistido no sistema de arquivos.
-O arquivo só deve ser lido a partir do sistema de arquivos se não houver cache válido para o mesmo.
-```
+<summary><h3>🐋 Rodando no Docker vs Localmente</h3></summary>
 
-## Restrições
+  <details>
+  
+## 👉 Com Docker
 
-A única limitação é o uso requerido da runtime `node.js`.
+    ⚠ Antes de começar, seu docker-compose precisa estar na versão 2.29 e o docker na versão 27.2 de preferência.
 
-Você tem total liberdade para usar as demais bibliotecas que mais lhe fornecerem produtividade.
+    ⚠ Suba o projeto completo usando o comando `docker-compose up --build` na raiz do projeto.
+    ⚠ Para teste de desenvolvimento suba o docker com o comando `docker-compose -f env-dev/docker-compose.dev.yml up --build`.
 
-Acaso você esteja utilizando este projeto como um meio de estudo, nós o aconselhamos a usar a biblioteca padrão para lidar com requisições web do Node.js, `http`.
+    - Esses serviços inicializarão o contêiner chamado app_backend_prod ou app_backend (teste).
 
-## Tempo proposto de conclusão e o que estamos avaliando
+    - A partir daqui, você pode executar o contêiner via CLI ou abri-los no VS Code.
 
-Este teste busca avaliar as seguintes competências:
+    ℹ️ As dependências são instaladas por meio do Dockerfile que é lido pelo Docker.
 
-- Capacidade de interação com APIs de sistema;
-- Capacidade de desenvolver soluções que usam o conceito de concorrência para extrair maior desempenho do hardware;
-- Domínio sobre a linguagem JavaScript;
-- Domínio sobre a runtime `node.js`;
-- Capacidade de organização de código (Adendo: organize da forma que for mais familiarizado, não estamos olhando para a estrutura de pastas, mas sim para a coesão e o desacoplamento) e
-- Capacidade de lidar com contêineres Docker.
+    ✨ Dica: A extensão Remote - Containers é recomendada para que você possa desenvolver sua aplicação no container Docker diretamente no VS Code, assim como você faz com seus arquivos locais.
+
+<br />
+
+## 👉 Sem Docker
+
+    > :information_source: Instale as dependências com `npm install` no diretório raiz.
+
+    ⚠ Não execute o comando npm audit fix! Ele atualiza várias dependências do projeto que podem causar conflitos.
+
+    - ✨ Dica: Para executar o projeto dessa forma, você deve ter o node instalado no seu computador.
+
+    ⚠ Espera-se que a versão do node usada esteja entre as mais recentes (v20+).
+
+    - Para executar a aplicação use o comando `npm start` em seu diretório.
+
+  <br/>
+
+  </details>
+
+  <h3>🛠 Tecnologias</h3>
+
+    As tecnologias usadas foram: NestJS, TS, Nest Cache, Docker, Eslint, Prettier.
+
+  <h3>Author</h3>
+
+  <a href='https://github.com/Veronica-Alfr'>Verônica Alves</a>
+
+</main>
