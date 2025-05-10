@@ -6,7 +6,8 @@ export class FileUtils {
   private static baseDir: string;
 
   static initialize(configService: ConfigService) {
-    this.baseDir = configService.get<string>('VIDEOS_DIR') || join(process.cwd(), 'videos');
+    this.baseDir =
+      configService.get<string>('VIDEOS_DIR') || join(process.cwd(), 'videos');
 
     if (!existsSync(this.baseDir)) {
       mkdirSync(this.baseDir, { recursive: true });
@@ -15,9 +16,11 @@ export class FileUtils {
 
   static getFullPath(filename: string): string {
     if (!this.baseDir) {
-      throw new Error('FileUtils not initialized. Call initialize() first.');
+      throw new Error(
+        'FileUtils not initialized. Call initialize() first.',
+      );
     }
-    return join(this.baseDir, filename);
+    return `${this.baseDir}/${filename}`;
   }
 
   static fileExists(filename: string): boolean {
