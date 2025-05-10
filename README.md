@@ -7,15 +7,13 @@
 
   <h3>Status do Projeto</h3>
   
-    Requisitos obrigatórios finalizados ✅
-
-  <h3>+ Tarefas 👩🏽‍💻</h3>
-
-    - Adicionar testes unitários
+    Finalizado e com testes unitários e E2E ✅
 
   <h3>Observações</h3>
   
     Esse é um projeto com instruções e licença 📜 registrados aqui -> env-dev/README.md
+
+    Para permitir a criação de arquivos em uma pasta, crie o arquivo ´.env´ recebendo: VIDEOS_DIR=./videos
 
 <summary><h3>🐋 Rodando no Docker vs Localmente</h3></summary>
 
