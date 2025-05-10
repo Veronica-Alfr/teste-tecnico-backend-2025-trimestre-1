@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { VideoService } from './video.service';
 import { VideoController } from './video.controller';
-import { VideoCacheService } from 'src/services/video-cache/video-cache.service';
-import { FileStorageService } from 'src/services/file-storage/file-storage.service';
+import { VideoCacheService } from '../../services/video-cache/video-cache.service';
+import { FileStorageService } from '../../services/file-storage/file-storage.service';
 
 @Module({
   providers: [

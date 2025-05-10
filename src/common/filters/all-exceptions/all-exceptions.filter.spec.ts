@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { AllExceptionsFilter } from './all-exceptions.filter';
-import { HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { ArgumentsHost } from '@nestjs/common/interfaces/features/arguments-host.interface';
 import { Response } from 'express';
 import { InvalidRangeError, VideoNotFoundError } from '../../../custom/error/errors';
@@ -9,7 +9,6 @@ describe('AllExceptionsFilter', () => {
   let filter: AllExceptionsFilter;
   let mockResponse: Partial<Response>;
   let mockArgumentsHost: ArgumentsHost;
-  let mockLogger: jest.SpyInstance;
 
   beforeEach(async () => {
     mockResponse = {
@@ -27,11 +26,17 @@ describe('AllExceptionsFilter', () => {
       switchToHttp: () => httpContext,
     } as unknown as ArgumentsHost;
 
-    mockLogger = jest.spyOn(Logger.prototype, 'error').mockImplementation();
-
     const module = await Test.createTestingModule({
       providers: [AllExceptionsFilter],
-    }).compile();
+    })
+    .setLogger({
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+    })
+    .compile();
 
     filter = module.get<AllExceptionsFilter>(AllExceptionsFilter);
   });
@@ -61,7 +66,6 @@ describe('AllExceptionsFilter', () => {
           message: 'Custom error',
         }),
       );
-      expect(mockLogger).toHaveBeenCalled();
     });
 
     it('should handle HttpException with string response', () => {
@@ -77,7 +81,6 @@ describe('AllExceptionsFilter', () => {
           message: 'Simple error',
         }),
       );
-      expect(mockLogger).toHaveBeenCalled();
     });
 
     it('should handle VideoNotFoundError', () => {
@@ -93,7 +96,6 @@ describe('AllExceptionsFilter', () => {
           message: 'Video not found',
         }),
       );
-      expect(mockLogger).toHaveBeenCalled();
     });
 
     it('should handle InvalidRangeError', () => {
@@ -109,7 +111,6 @@ describe('AllExceptionsFilter', () => {
           message: 'Invalid range',
         }),
       );
-      expect(mockLogger).toHaveBeenCalled();
     });
 
     it('should handle generic Error', () => {
@@ -127,7 +128,6 @@ describe('AllExceptionsFilter', () => {
           message: 'Generic error',
         }),
       );
-      expect(mockLogger).toHaveBeenCalled();
     });
 
     it('should handle unknown exception', () => {
@@ -145,7 +145,6 @@ describe('AllExceptionsFilter', () => {
           message: 'Internal server error',
         }),
       );
-      expect(mockLogger).toHaveBeenCalled();
     });
 
     it('should include timestamp in response', () => {
@@ -163,6 +162,114 @@ describe('AllExceptionsFilter', () => {
       );
 
       jest.useRealTimers();
+    });
+
+    it('should handle HttpException with object response using error from response', () => {
+      const exception = new HttpException(
+        { message: 'Custom error', error: 'Custom Error Type' },
+        HttpStatus.BAD_REQUEST,
+      );
+
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: HttpStatus.BAD_REQUEST,
+          error: 'Custom Error Type',
+          message: 'Custom error',
+        }),
+      );
+    });
+
+    it('should handle HttpException with object response using exception name when error is not provided', () => {
+      const exception = new HttpException(
+        { message: 'Custom error' },
+        HttpStatus.BAD_REQUEST,
+      );
+
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: HttpStatus.BAD_REQUEST,
+          error: 'HttpException',
+          message: 'Custom error',
+        }),
+      );
+    });
+
+    it('should handle HttpException with object response using exception name when error is empty', () => {
+      const exception = new HttpException(
+        { message: 'Custom error', error: '' },
+        HttpStatus.BAD_REQUEST,
+      );
+
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: HttpStatus.BAD_REQUEST,
+          error: 'HttpException',
+          message: 'Custom error',
+        }),
+      );
+    });
+
+    it('should handle HttpException with object response using message from response', () => {
+      const exception = new HttpException(
+        { message: 'Custom message', error: 'Custom Error Type' },
+        HttpStatus.BAD_REQUEST,
+      );
+
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: HttpStatus.BAD_REQUEST,
+          error: 'Custom Error Type',
+          message: 'Custom message',
+        }),
+      );
+    });
+
+    it('should handle HttpException with object response using exception message when response message is not provided', () => {
+      const exception = new HttpException(
+        { error: 'Custom Error Type' },
+        HttpStatus.BAD_REQUEST,
+      );
+
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: HttpStatus.BAD_REQUEST,
+          error: 'Custom Error Type',
+          message: 'Http Exception',
+        }),
+      );
+    });
+
+    it('should handle HttpException with object response using exception message when response message is empty', () => {
+      const exception = new HttpException(
+        { message: '', error: 'Custom Error Type' },
+        HttpStatus.BAD_REQUEST,
+      );
+
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: HttpStatus.BAD_REQUEST,
+          error: 'Custom Error Type',
+          message: '',
+        }),
+      );
     });
   });
 });

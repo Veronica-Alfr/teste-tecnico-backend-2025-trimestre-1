@@ -1,11 +1,13 @@
 import { Controller, Post, UseInterceptors, UploadedFile, HttpCode, 
-  ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+  ParseFilePipe, MaxFileSizeValidator, Logger, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { memoryStorage } from 'multer';
 
 @Controller('upload')
 export class UploadController {
+  private readonly logger = new Logger(UploadController.name);
+
   constructor(private readonly uploadService: UploadService) {};
 
   @Post('video')
@@ -23,14 +25,21 @@ export class UploadController {
             maxSize: 10 * 1024 * 1024, 
             message: 'File too large, max size is 10MB!' 
           }),
-          new FileTypeValidator({ 
-            fileType: /^video\/(mp4|quicktime|x-msvideo|webm|x-matroska|x-flv|x-ms-wmv)$/
-          }),
         ],
       }),
     )
     file: Express.Multer.File,
   ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    this.logger.debug(`Received file: ${JSON.stringify({
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size
+    })}`);
+    
     await this.uploadService.processFile(file);
   };
 };

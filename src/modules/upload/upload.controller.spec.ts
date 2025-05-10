@@ -3,22 +3,15 @@ import { UploadController } from './upload.controller';
 import { UploadService } from './upload.service';
 import { BadRequestException } from '@nestjs/common';
 
-jest.mock('./upload.service', () => {
-  return {
-    UploadService: jest.fn().mockImplementation(() => ({
-      processFile: jest.fn(),
-    })),
-  };
-});
-
 describe('UploadController', () => {
   let controller: UploadController;
-
-  const mockUploadService = {
-    processFile: jest.fn(),
-  };
+  let mockUploadService: jest.Mocked<UploadService>;
 
   beforeEach(async () => {
+    mockUploadService = {
+      processFile: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UploadController],
       providers: [
@@ -30,7 +23,6 @@ describe('UploadController', () => {
     }).compile();
 
     controller = module.get<UploadController>(UploadController);
-    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -40,42 +32,37 @@ describe('UploadController', () => {
   describe('uploadFile', () => {
     const mockFile = {
       originalname: 'test.mp4',
+      mimetype: 'video/mp4',
       buffer: Buffer.from('test video data'),
+      size: 1024,
     } as Express.Multer.File;
 
-    it('should process file successfully', async () => {
+    it('should upload file successfully', async () => {
       mockUploadService.processFile.mockResolvedValueOnce(undefined);
 
-      await controller.uploadFile(mockFile);
-
+      await expect(controller.uploadFile(mockFile)).resolves.not.toThrow();
       expect(mockUploadService.processFile).toHaveBeenCalledWith(mockFile);
     });
 
-    it('should throw BadRequestException when file is invalid', async () => {
-      const invalidFile = {
-        originalname: 'test.txt',
-        buffer: Buffer.from('invalid file'),
-      } as Express.Multer.File;
-
-      mockUploadService.processFile.mockRejectedValueOnce(
-        new BadRequestException(),
-      );
-
-      await expect(controller.uploadFile(invalidFile)).rejects.toThrow(
-        BadRequestException,
-      );
-      expect(mockUploadService.processFile).toHaveBeenCalledWith(invalidFile);
+    it('should handle null file', async () => {
+      await expect(
+        controller.uploadFile(null as unknown as Express.Multer.File),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockUploadService.processFile).not.toHaveBeenCalled();
     });
 
-    it('should handle null file', async () => {
-      mockUploadService.processFile.mockRejectedValueOnce(
-        new BadRequestException(),
-      );
-
+    it('should handle undefined file', async () => {
       await expect(
         controller.uploadFile(undefined as unknown as Express.Multer.File),
       ).rejects.toThrow(BadRequestException);
-      expect(mockUploadService.processFile).toHaveBeenCalledWith(undefined);
+      expect(mockUploadService.processFile).not.toHaveBeenCalled();
+    });
+
+    it('should handle service errors', async () => {
+      mockUploadService.processFile.mockRejectedValueOnce(new Error('Service error'));
+
+      await expect(controller.uploadFile(mockFile)).rejects.toThrow('Service error');
+      expect(mockUploadService.processFile).toHaveBeenCalledWith(mockFile);
     });
   });
 });

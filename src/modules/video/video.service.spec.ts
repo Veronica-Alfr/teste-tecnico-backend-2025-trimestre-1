@@ -102,12 +102,118 @@ describe('VideoService', () => {
       ).rejects.toThrow(InvalidRangeError);
     });
 
+    it('should throw InvalidRangeError for invalid range format', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+
+      await expect(
+        service.getVideoStream(filename, 'bytes=0'),
+      ).rejects.toThrow(InvalidRangeError);
+    });
+
+    it('should throw InvalidRangeError for empty range values', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+
+      await expect(
+        service.getVideoStream(filename, 'bytes=-'),
+      ).rejects.toThrow(InvalidRangeError);
+    });
+
     it('should throw InvalidRangeError for invalid range values', async () => {
       mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
 
       await expect(
         service.getVideoStream(filename, 'bytes=1024-0'),
       ).rejects.toThrow(InvalidRangeError);
+    });
+
+    it('should throw InvalidRangeError for negative start value', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+
+      await expect(
+        service.getVideoStream(filename, 'bytes=-1-1024'),
+      ).rejects.toThrow(InvalidRangeError);
+    });
+
+    it('should throw InvalidRangeError for NaN range values', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+
+      await expect(
+        service.getVideoStream(filename, 'bytes=abc-def'),
+      ).rejects.toThrow(InvalidRangeError);
+    });
+
+    it('should handle range with invalid end value', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+      mockFileTypeFromBuffer.mockResolvedValueOnce({
+        mime: 'video/mp4',
+      });
+
+      const result = await service.getVideoStream(filename, 'bytes=0-invalid');
+
+      expect(result.headers['Content-Range']).toBeDefined();
+      expect(result.statusCode).toBe(206);
+      expect(result.headers['Content-Length']).toBe(mockBuffer.length);
+    });
+
+    it('should handle range with empty end value', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+      mockFileTypeFromBuffer.mockResolvedValueOnce({
+        mime: 'video/mp4',
+      });
+
+      const result = await service.getVideoStream(filename, 'bytes=0-');
+
+      expect(result.headers['Content-Range']).toBeDefined();
+      expect(result.statusCode).toBe(206);
+      expect(result.headers['Content-Length']).toBe(mockBuffer.length);
+    });
+
+    it('should handle range with empty start value', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+      mockFileTypeFromBuffer.mockResolvedValueOnce({
+        mime: 'video/mp4',
+      });
+
+      const result = await service.getVideoStream(filename, 'bytes=-1024');
+
+      expect(result.headers['Content-Range']).toBeDefined();
+      expect(result.statusCode).toBe(206);
+      expect(result.headers['Content-Length']).toBe(mockBuffer.length);
+      expect(result.buffer.length).toBe(mockBuffer.length);
+    });
+
+    it('should throw InvalidRangeError for invalid range values (NaN)', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+
+      await expect(
+        service.getVideoStream(filename, 'bytes=invalid-invalid'),
+      ).rejects.toThrow(InvalidRangeError);
+    });
+
+    it('should handle range with end value greater than file size', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+      mockFileTypeFromBuffer.mockResolvedValueOnce({
+        mime: 'video/mp4',
+      });
+
+      const result = await service.getVideoStream(filename, `bytes=0-${mockBuffer.length + 100}`);
+
+      expect(result.headers['Content-Range']).toBeDefined();
+      expect(result.statusCode).toBe(206);
+      expect(result.headers['Content-Length']).toBe(mockBuffer.length);
+    });
+
+    it('should adjust end value when it exceeds file size', async () => {
+      mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
+      mockFileTypeFromBuffer.mockResolvedValueOnce({
+        mime: 'video/mp4',
+      });
+
+      const result = await service.getVideoStream(filename, 'bytes=0-999999');
+
+      expect(result.headers['Content-Range']).toBeDefined();
+      expect(result.statusCode).toBe(206);
+      expect(result.headers['Content-Length']).toBe(mockBuffer.length);
     });
 
     it('should use default content type when file type is not detected', async () => {

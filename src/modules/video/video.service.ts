@@ -41,14 +41,29 @@ export class VideoService {
         throw new InvalidRangeError('Unsupported range unit');
 
       const parts = range.split('-');
-      start = Number.isNaN(parseInt(parts[0], 10)) ? 0 : parseInt(parts[0], 10);
-      end = Number.isNaN(parseInt(parts[1], 10))
-        ? fileSize - 1
-        : parseInt(parts[1], 10);
+      if (parts.length !== 2) {
+        throw new InvalidRangeError('Invalid range format');
+      }
 
-      if (isNaN(start) || start < 0) start = 0;
-      if (isNaN(end) || end >= fileSize) end = fileSize - 1;
-      if (start > end) throw new InvalidRangeError('Invalid range values');
+      const startStr = parts[0];
+      const endStr = parts[1];
+
+      if (startStr === '' && endStr === '') {
+        throw new InvalidRangeError('Invalid range values');
+      }
+
+      start = startStr === '' ? 0 : parseInt(startStr, 10);
+      end = endStr === '' ? fileSize - 1 : parseInt(endStr, 10);
+
+      if (isNaN(start) || start < 0) {
+        throw new InvalidRangeError('Invalid range values');
+      }
+      if (isNaN(end) || end >= fileSize) {
+        end = fileSize - 1;
+      }
+      if (start > end) {
+        throw new InvalidRangeError('Invalid range values');
+      }
     }
 
     return {
