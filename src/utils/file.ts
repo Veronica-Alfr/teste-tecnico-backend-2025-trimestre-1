@@ -1,14 +1,27 @@
-import { existsSync, promises as fs } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 
 export class FileUtils {
-    private static readonly baseDir = '/app/videos';
+  private static baseDir: string;
 
-    static getFullPath(filename: string): string {
-        return join(this.baseDir, filename);
-    };
+  static initialize(configService: ConfigService) {
+    this.baseDir =
+      configService.get<string>('VIDEOS_DIR') || join(process.cwd(), 'videos');
 
-    static fileExists(filename: string): boolean {
-        return existsSync(this.getFullPath(filename));
-    };
-};
+    if (!existsSync(this.baseDir)) {
+      mkdirSync(this.baseDir, { recursive: true });
+    }
+  }
+
+  static getFullPath(filename: string): string {
+    if (!this.baseDir) {
+      throw new Error('FileUtils not initialized. Call initialize() first.');
+    }
+    return `${this.baseDir}/${filename}`;
+  }
+
+  static fileExists(filename: string): boolean {
+    return existsSync(this.getFullPath(filename));
+  }
+}
