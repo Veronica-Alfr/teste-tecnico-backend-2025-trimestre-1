@@ -1,10 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VideoService } from './video.service';
 import { InvalidRangeError } from '../../custom/error/errors';
-import {
-  FileTypeModule,
-  FileTypeResult,
-} from '../__mocks__/file-type.types';
+import { FileTypeModule, FileTypeResult } from '../__mocks__/file-type.types';
 
 jest.mock('file-type', () => {
   const mockFn = jest.fn<Promise<FileTypeResult | undefined>, [Buffer]>();
@@ -105,17 +102,17 @@ describe('VideoService', () => {
     it('should throw InvalidRangeError for invalid range format', async () => {
       mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
 
-      await expect(
-        service.getVideoStream(filename, 'bytes=0'),
-      ).rejects.toThrow(InvalidRangeError);
+      await expect(service.getVideoStream(filename, 'bytes=0')).rejects.toThrow(
+        InvalidRangeError,
+      );
     });
 
     it('should throw InvalidRangeError for empty range values', async () => {
       mockVideoCache.getFromCache.mockResolvedValueOnce(mockBuffer);
 
-      await expect(
-        service.getVideoStream(filename, 'bytes=-'),
-      ).rejects.toThrow(InvalidRangeError);
+      await expect(service.getVideoStream(filename, 'bytes=-')).rejects.toThrow(
+        InvalidRangeError,
+      );
     });
 
     it('should throw InvalidRangeError for invalid range values', async () => {
@@ -196,7 +193,10 @@ describe('VideoService', () => {
         mime: 'video/mp4',
       });
 
-      const result = await service.getVideoStream(filename, `bytes=0-${mockBuffer.length + 100}`);
+      const result = await service.getVideoStream(
+        filename,
+        `bytes=0-${mockBuffer.length + 100}`,
+      );
 
       expect(result.headers['Content-Range']).toBeDefined();
       expect(result.statusCode).toBe(206);

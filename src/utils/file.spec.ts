@@ -29,8 +29,7 @@ describe('FileUtils', () => {
     }).compile();
 
     configService = module.get<ConfigService>(ConfigService);
-    jest.resetAllMocks(); // reset mocks and implementations
-    // Reset FileUtils state
+    jest.resetAllMocks();
     (FileUtils as any).baseDir = undefined;
   });
 
@@ -80,7 +79,9 @@ describe('FileUtils', () => {
         throw new Error('Permission denied');
       });
 
-      expect(() => FileUtils.initialize(configService)).toThrow('Permission denied');
+      expect(() => FileUtils.initialize(configService)).toThrow(
+        'Permission denied',
+      );
     });
   });
 

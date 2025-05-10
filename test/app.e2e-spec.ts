@@ -19,7 +19,7 @@ describe('Video Upload (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    
+
     const configService = app.get(ConfigService);
     jest.spyOn(configService, 'get').mockImplementation((key: string) => {
       if (key === 'VIDEOS_DIR') return testVideosDir;
@@ -44,7 +44,7 @@ describe('Video Upload (e2e)', () => {
       .post('/upload/video')
       .attach('video', videoStream, {
         filename: 'Your_Blip_ChatBot.mp4',
-        contentType: 'video/mp4'
+        contentType: 'video/mp4',
       })
       .expect(204);
   });
@@ -57,23 +57,25 @@ describe('Video Upload (e2e)', () => {
       .post('/upload/video')
       .attach('video', imageStream, {
         filename: 'start_button.png',
-        contentType: 'image/png'
+        contentType: 'image/png',
       })
       .expect(400);
 
     expect(response.body).toHaveProperty('error', 'Bad Request');
-    expect(response.body.message).toBe('Invalid file type. Only video files are allowed.');
+    expect(response.body.message).toBe(
+      'Invalid file type. Only video files are allowed.',
+    );
   });
 
   it('should stream uploaded video', async () => {
     const videoPath = join(__dirname, 'fixtures', 'Your_Blip_ChatBot.mp4');
     const videoStream = createReadStream(videoPath);
-    
+
     await request(app.getHttpServer())
       .post('/upload/video')
       .attach('video', videoStream, {
         filename: 'Your_Blip_ChatBot.mp4',
-        contentType: 'video/mp4'
+        contentType: 'video/mp4',
       })
       .expect(204);
 
@@ -99,12 +101,12 @@ describe('Video Upload (e2e)', () => {
     it('should handle InvalidRangeError', async () => {
       const videoPath = join(__dirname, 'fixtures', 'Your_Blip_ChatBot.mp4');
       const videoStream = createReadStream(videoPath);
-      
+
       await request(app.getHttpServer())
         .post('/upload/video')
         .attach('video', videoStream, {
           filename: 'Your_Blip_ChatBot.mp4',
-          contentType: 'video/mp4'
+          contentType: 'video/mp4',
         })
         .expect(204);
 

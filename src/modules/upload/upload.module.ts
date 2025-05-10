@@ -18,5 +18,4 @@ import { FileWriterService } from '../../services/file-writer/file-writer.servic
     UploadService,
   ],
 })
-
-export class UploadModule {};
+export class UploadModule {}

@@ -16,9 +16,7 @@ export class FileUtils {
 
   static getFullPath(filename: string): string {
     if (!this.baseDir) {
-      throw new Error(
-        'FileUtils not initialized. Call initialize() first.',
-      );
+      throw new Error('FileUtils not initialized. Call initialize() first.');
     }
     return `${this.baseDir}/${filename}`;
   }

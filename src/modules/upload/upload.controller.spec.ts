@@ -59,9 +59,13 @@ describe('UploadController', () => {
     });
 
     it('should handle service errors', async () => {
-      mockUploadService.processFile.mockRejectedValueOnce(new Error('Service error'));
+      mockUploadService.processFile.mockRejectedValueOnce(
+        new Error('Service error'),
+      );
 
-      await expect(controller.uploadFile(mockFile)).rejects.toThrow('Service error');
+      await expect(controller.uploadFile(mockFile)).rejects.toThrow(
+        'Service error',
+      );
       expect(mockUploadService.processFile).toHaveBeenCalledWith(mockFile);
     });
   });

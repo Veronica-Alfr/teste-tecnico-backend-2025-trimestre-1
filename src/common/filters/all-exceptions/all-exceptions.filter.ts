@@ -7,7 +7,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { InvalidRangeError, VideoNotFoundError } from '../../../custom/error/errors';
+import {
+  InvalidRangeError,
+  VideoNotFoundError,
+} from '../../../custom/error/errors';
 import { IExceptionResponse } from '../../../interfaces/IExceptionResponse';
 
 @Catch()

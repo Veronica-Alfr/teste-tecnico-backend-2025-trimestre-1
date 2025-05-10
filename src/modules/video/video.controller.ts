@@ -11,9 +11,10 @@ export class VideoController {
   async streamVideo(
     @Param('filename') filename: string,
     @Headers('range') range: string,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
-    const { buffer, headers, statusCode } = await this.videoService.getVideoStream(filename, range);
+    const { buffer, headers, statusCode } =
+      await this.videoService.getVideoStream(filename, range);
     res.status(statusCode).set(headers);
     return res.send(buffer);
   }

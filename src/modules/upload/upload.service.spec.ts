@@ -161,9 +161,9 @@ describe('UploadService', () => {
         mime: 'video/mp4',
       });
 
-      await expect(service.processFile(fileWithInvalidExtension)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.processFile(fileWithInvalidExtension),
+      ).rejects.toThrow(BadRequestException);
       expect(mockCacheService.cacheFile).not.toHaveBeenCalled();
       expect(mockFileWriter.writeFile).not.toHaveBeenCalled();
     });
@@ -220,8 +220,10 @@ describe('UploadService', () => {
       mockFileTypeFromBuffer.mockResolvedValueOnce({
         mime: 'video/mp4',
       });
-      mockCacheService.cacheFile.mockRejectedValueOnce(new Error('Unknown error'));
-      
+      mockCacheService.cacheFile.mockRejectedValueOnce(
+        new Error('Unknown error'),
+      );
+
       class CustomError extends Error {
         constructor() {
           super('Custom error');
@@ -272,7 +274,7 @@ describe('UploadService', () => {
     it('should handle Error objects without stack trace', async () => {
       const errorWithoutStack = new Error('Error without stack');
       delete errorWithoutStack.stack;
-      
+
       mockFileTypeFromBuffer.mockImplementationOnce(() => {
         throw errorWithoutStack;
       });

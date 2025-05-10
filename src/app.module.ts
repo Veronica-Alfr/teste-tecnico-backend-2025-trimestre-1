@@ -20,9 +20,14 @@ import { FileUtils } from './utils/file';
     }),
 
     UploadModule,
-    VideoModule
+    VideoModule,
   ],
-  providers: [VideoCacheService, FileStorageService, FileWriterService, UploadCacheService],
+  providers: [
+    VideoCacheService,
+    FileStorageService,
+    FileWriterService,
+    UploadCacheService,
+  ],
 })
 export class AppModule implements OnModuleInit {
   constructor(private configService: ConfigService) {}

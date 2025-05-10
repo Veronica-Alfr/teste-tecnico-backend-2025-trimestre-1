@@ -3,7 +3,10 @@ import { AllExceptionsFilter } from './all-exceptions.filter';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ArgumentsHost } from '@nestjs/common/interfaces/features/arguments-host.interface';
 import { Response } from 'express';
-import { InvalidRangeError, VideoNotFoundError } from '../../../custom/error/errors';
+import {
+  InvalidRangeError,
+  VideoNotFoundError,
+} from '../../../custom/error/errors';
 
 describe('AllExceptionsFilter', () => {
   let filter: AllExceptionsFilter;
@@ -29,14 +32,14 @@ describe('AllExceptionsFilter', () => {
     const module = await Test.createTestingModule({
       providers: [AllExceptionsFilter],
     })
-    .setLogger({
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-      verbose: jest.fn(),
-    })
-    .compile();
+      .setLogger({
+        log: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+        verbose: jest.fn(),
+      })
+      .compile();
 
     filter = module.get<AllExceptionsFilter>(AllExceptionsFilter);
   });
@@ -69,7 +72,10 @@ describe('AllExceptionsFilter', () => {
     });
 
     it('should handle HttpException with string response', () => {
-      const exception = new HttpException('Simple error', HttpStatus.BAD_REQUEST);
+      const exception = new HttpException(
+        'Simple error',
+        HttpStatus.BAD_REQUEST,
+      );
 
       filter.catch(exception, mockArgumentsHost);
 

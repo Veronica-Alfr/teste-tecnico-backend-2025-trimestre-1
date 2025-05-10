@@ -14,7 +14,7 @@ import { FileStorageService } from '../../services/file-storage/file-storage.ser
       provide: 'IFileStorage',
       useClass: FileStorageService,
     },
-    VideoService
+    VideoService,
   ],
   controllers: [VideoController],
 })

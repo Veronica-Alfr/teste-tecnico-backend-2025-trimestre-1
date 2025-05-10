@@ -22,7 +22,9 @@ export class VideoService {
   }
 
   private async detectContentType(buffer: Buffer): Promise<string> {
-    const type = await (FileType as unknown as FileTypeModule).fromBuffer(buffer);
+    const type = await (FileType as unknown as FileTypeModule).fromBuffer(
+      buffer,
+    );
     return type?.mime || 'application/octet-stream';
   }
 
