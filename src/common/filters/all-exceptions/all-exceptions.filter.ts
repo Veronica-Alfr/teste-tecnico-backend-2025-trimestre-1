@@ -1,6 +1,14 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Response } from 'express';
-import { InvalidRangeError, VideoNotFoundError } from 'src/custom/error/errors';
+import { InvalidRangeError, VideoNotFoundError } from '../../../custom/error/errors';
+import { IExceptionResponse } from '../../../interfaces/IExceptionResponse';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -17,12 +25,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      
+
       if (typeof exceptionResponse === 'object') {
-        message = (exceptionResponse as Record<string, any>).message || exception.message;
-        errorType = (exceptionResponse as Record<string, any>).error || exception.name;
+        const response = exceptionResponse as IExceptionResponse;
+        message = response.message || exception.message;
+        errorType = response.error || exception.name;
       } else {
-        message = exceptionResponse as string;
+        message = exceptionResponse;
         errorType = exception.name;
       }
     } else if (exception instanceof VideoNotFoundError) {
@@ -40,7 +49,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     this.logger.error(
       `Exception: ${JSON.stringify({ errorType, message })}, Status: ${status}`,
-      exception instanceof Error ? exception.stack : ''
+      exception instanceof Error ? exception.stack : '',
     );
 
     response.status(status).json({
@@ -49,5 +58,5 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message,
       timestamp: new Date().toISOString(),
     });
-  };
-};
+  }
+}

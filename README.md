@@ -11,7 +11,7 @@
 
   <h3>+ Tarefas 👩🏽‍💻</h3>
 
-    - Adicionar testes integrados
+    - Adicionar testes unitários
 
   <h3>Observações</h3>
   

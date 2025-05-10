@@ -1,8 +1,15 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { fileTypeFromBuffer } from 'file-type';
-import { InvalidFileTypeError } from 'src/custom/error/errors';
-import { IFileWriter } from 'src/interfaces/IFileWriter';
-import { IUploadCache } from 'src/interfaces/IVideoCache';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import * as FileType from 'file-type';
+import { InvalidFileTypeError } from '../../custom/error/errors';
+import { IFileWriter } from '../../interfaces/IFileWriter';
+import { IUploadCache } from '../../interfaces/IVideoCache';
+import { FileTypeModule } from 'src/interfaces/IFileType';
 
 @Injectable()
 export class UploadService {
@@ -11,7 +18,7 @@ export class UploadService {
   constructor(
     @Inject('IUploadCache') private cacheService: IUploadCache,
     @Inject('IFileWriter') private fileWriter: IFileWriter,
-  ) {};
+  ) {}
 
   async processFile(file: Express.Multer.File): Promise<void> {
     try {
@@ -24,26 +31,29 @@ export class UploadService {
       await this.fileWriter.writeFile(filename, file.buffer);
 
       this.logger.log(`File processed successfully: ${filename}`);
-
-    } catch (error) {
-      this.logger.error(`Upload failed: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
 
       if (error instanceof InvalidFileTypeError) {
         throw new BadRequestException(error.message);
-      };
+      }
 
       throw new InternalServerErrorException('File processing failed');
-    };
-  };
+    }
+  }
 
   private async validateFile(file: Express.Multer.File): Promise<void> {
     if (!file) {
       throw new BadRequestException('');
-    };
+    }
 
-    const type = await fileTypeFromBuffer(file.buffer);
+    const type = await (FileType as unknown as FileTypeModule).fromBuffer(
+      file.buffer,
+    );
     if (!type?.mime.startsWith('video/')) {
       throw new InvalidFileTypeError('Invalid file type');
-    };
-  };
-};
+    }
+  }
+}
