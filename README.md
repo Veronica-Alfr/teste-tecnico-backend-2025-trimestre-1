@@ -2,7 +2,7 @@
   <h1 align="center">Upload/Get Video</h1>
 
   <p>
-    O projeto realiza upload de vídeos de vários formatos, e os salva no cache por 60s. Assim, ele é trazido do cache ou da pasta criada no backend do docker. 
+    O projeto realiza upload de vídeos de vários formatos, e os salva no cache por 60s. Assim, ele é trazido do cache ou da pasta criada no backend do docker.
   </p>
 
   <h3>Status do Projeto</h3>
@@ -54,7 +54,7 @@
 
   <h3>🛠 Tecnologias</h3>
 
-    As tecnologias usadas foram: NestJS, TS, Nest Cache, Docker, Eslint, Prettier.
+    As tecnologias usadas foram: NestJS, TS, Nest Cache, Docker, Jest, Eslint, Prettier.
 
   <h3>Author</h3>
 
