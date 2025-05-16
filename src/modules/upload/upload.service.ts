@@ -7,7 +7,7 @@ import {
 import * as FileType from 'file-type';
 import { InvalidFileTypeError } from '../../custom/error/errors';
 import { IFileWriter } from '../../interfaces/IFileWriter';
-import { IUploadCache } from '../../interfaces/IVideoCache';
+import { IVideoCache } from '../../interfaces/IVideoCache';
 import { FileTypeModule } from '../../interfaces/IFileType';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class UploadService {
   private readonly logger = new Logger(UploadService.name);
 
   constructor(
-    @Inject('IUploadCache') private cacheService: IUploadCache,
+    @Inject('IVideoCache') private cacheService: IVideoCache,
     @Inject('IFileWriter') private fileWriter: IFileWriter,
   ) {}
 

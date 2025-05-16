@@ -1,8 +1,5 @@
 export interface IVideoCache {
+  cacheFile(filename: string, buffer: Buffer): Promise<void>;
   getFromCache(filename: string): Promise<Buffer | null>;
-}
-
-export interface IUploadCache {
-  cacheFile(key: string, buffer: Buffer): Promise<void>;
-  deleteFromCache(key: string): Promise<void>;
+  deleteFromCache(filename: string): Promise<void>;
 }

@@ -6,7 +6,6 @@ import { VideoModule } from './modules/video/video.module';
 import { VideoCacheService } from './services/video-cache/video-cache.service';
 import { FileStorageService } from './services/file-storage/file-storage.service';
 import { FileWriterService } from './services/file-writer/file-writer.service';
-import { UploadCacheService } from './services/upload-cache/upload-cache.service';
 import { FileUtils } from './utils/file';
 
 @Module({
@@ -18,7 +17,6 @@ import { FileUtils } from './utils/file';
         ttl: 60,
       }),
     }),
-
     UploadModule,
     VideoModule,
   ],
@@ -26,7 +24,6 @@ import { FileUtils } from './utils/file';
     VideoCacheService,
     FileStorageService,
     FileWriterService,
-    UploadCacheService,
   ],
 })
 export class AppModule implements OnModuleInit {
