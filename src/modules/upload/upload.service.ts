@@ -2,14 +2,13 @@ import {
   BadRequestException,
   Inject,
   Injectable,
-  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import * as FileType from 'file-type';
 import { InvalidFileTypeError } from '../../custom/error/errors';
 import { IFileWriter } from '../../interfaces/IFileWriter';
 import { IUploadCache } from '../../interfaces/IVideoCache';
-import { FileTypeModule } from 'src/interfaces/IFileType';
+import { FileTypeModule } from '../../interfaces/IFileType';
 
 @Injectable()
 export class UploadService {
@@ -21,57 +20,28 @@ export class UploadService {
   ) {}
 
   async processFile(file: Express.Multer.File): Promise<void> {
-    try {
-      if (!file) {
-        throw new BadRequestException('No file uploaded');
-      }
-
-      this.logger.debug(
-        `Processing file: ${JSON.stringify({
-          originalname: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size,
-        })}`,
-      );
-
-      await this.validateFile(file);
-
-      const filename = file.originalname;
-
-      try {
-        this.logger.debug(`Caching file: ${filename}`);
-        await this.cacheService.cacheFile(filename, file.buffer);
-      } catch (error) {
-        this.logger.error(
-          `Cache error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
-        throw new InternalServerErrorException('Failed to cache file');
-      }
-
-      try {
-        this.logger.debug(`Writing file: ${filename}`);
-        await this.fileWriter.writeFile(filename, file.buffer);
-      } catch (error) {
-        this.logger.error(`Write error: ${error.message}`);
-        throw new InternalServerErrorException('Failed to write file');
-      }
-
-      this.logger.log(`File processed successfully: ${filename}`);
-    } catch (error: unknown) {
-      this.logger.error(
-        `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-
-      if (
-        error instanceof InvalidFileTypeError ||
-        error instanceof BadRequestException
-      ) {
-        throw new BadRequestException(error.message);
-      }
-
-      throw new InternalServerErrorException('File processing failed');
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
     }
+
+    this.logger.debug(
+      `Processing file: ${JSON.stringify({
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+      })}`,
+    );
+
+    await this.validateFile(file);
+    const filename = file.originalname;
+
+    this.logger.debug(`Caching file: ${filename}`);
+    await this.cacheService.cacheFile(filename, file.buffer);
+
+    this.logger.debug(`Writing file: ${filename}`);
+    await this.fileWriter.writeFile(filename, file.buffer);
+
+    this.logger.log(`File processed successfully: ${filename}`);
   }
 
   private async validateFile(file: Express.Multer.File): Promise<void> {
