@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { VideoNotFoundError } from '../../custom/error/errors';
 import { IFileStorage } from '../../interfaces/IFileStorage';
 import { FileUtils } from '../../utils/file';
@@ -15,5 +15,9 @@ export class FileStorageService implements IFileStorage {
 
   fileExists(filename: string): boolean {
     return FileUtils.fileExists(filename);
+  }
+
+  async writeFile(filename: string, buffer: Buffer): Promise<void> {
+    await writeFile(FileUtils.getFullPath(filename), buffer);
   }
 }
