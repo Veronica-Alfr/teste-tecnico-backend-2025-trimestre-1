@@ -8,6 +8,7 @@ import * as FileType from 'file-type';
 import { IFileWriter } from '../../interfaces/IFileWriter';
 import { IVideoCache } from '../../interfaces/IVideoCache';
 import { FileTypeModule } from '../../interfaces/IFileType';
+import { Readable } from 'stream';
 
 @Injectable()
 export class UploadService {
@@ -34,8 +35,12 @@ export class UploadService {
     await this.validateFile(file);
     const filename = file.originalname;
 
+    const fileStream = new Readable();
+    fileStream.push(file.buffer);
+    fileStream.push(null);
+
     this.logger.debug(`Caching file: ${filename}`);
-    await this.cacheService.cacheFile(filename, file.buffer);
+    await this.cacheService.cacheFile(filename, fileStream);
 
     this.logger.debug(`Writing file: ${filename}`);
     await this.fileWriter.writeFile(filename, file.buffer);
