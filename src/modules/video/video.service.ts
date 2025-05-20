@@ -1,8 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import * as FileType from 'file-type';
 import { IVideoCache } from 'src/interfaces/IVideoCache';
 import { IFileStorage } from 'src/interfaces/IFileStorage';
-import { InvalidRangeError } from '../../custom/error/errors';
 import { FileTypeModule } from 'src/interfaces/IFileType';
 
 @Injectable()
@@ -40,31 +39,31 @@ export class VideoService {
     if (rangeHeader) {
       const [unit, range] = rangeHeader.split('=');
       if (unit !== 'bytes')
-        throw new InvalidRangeError('Unsupported range unit');
+        throw new BadRequestException('Unsupported range unit');
 
       const parts = range.split('-');
       if (parts.length !== 2) {
-        throw new InvalidRangeError('Invalid range format');
+        throw new BadRequestException('Invalid range format');
       }
 
       const startStr = parts[0];
       const endStr = parts[1];
 
       if (startStr === '' && endStr === '') {
-        throw new InvalidRangeError('Invalid range values');
+        throw new BadRequestException('Invalid range values');
       }
 
       start = startStr === '' ? 0 : parseInt(startStr, 10);
       end = endStr === '' ? fileSize - 1 : parseInt(endStr, 10);
 
       if (isNaN(start) || start < 0) {
-        throw new InvalidRangeError('Invalid range values');
+        throw new BadRequestException('Invalid range values');
       }
       if (isNaN(end) || end >= fileSize) {
         end = fileSize - 1;
       }
       if (start > end) {
-        throw new InvalidRangeError('Invalid range values');
+        throw new BadRequestException('Invalid range values');
       }
     }
 

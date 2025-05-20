@@ -5,7 +5,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import * as FileType from 'file-type';
-import { InvalidFileTypeError } from '../../custom/error/errors';
 import { IFileWriter } from '../../interfaces/IFileWriter';
 import { IVideoCache } from '../../interfaces/IVideoCache';
 import { FileTypeModule } from '../../interfaces/IFileType';
@@ -56,7 +55,7 @@ export class UploadService {
 
     if (!fileType || !fileType.mime.startsWith('video/')) {
       this.logger.error(`Invalid file type: ${fileType?.mime || 'unknown'}`);
-      throw new InvalidFileTypeError(
+      throw new BadRequestException(
         'Invalid file type. Only video files are allowed.',
       );
     }
@@ -76,7 +75,7 @@ export class UploadService {
 
     if (!allowedExtensions.includes(fileExtension)) {
       this.logger.error(`Invalid file extension: ${fileExtension}`);
-      throw new InvalidFileTypeError(
+      throw new BadRequestException(
         'Invalid file extension. Allowed extensions: ' +
           allowedExtensions.join(', '),
       );

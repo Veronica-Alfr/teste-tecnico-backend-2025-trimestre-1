@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { readFile, writeFile } from 'fs/promises';
-import { VideoNotFoundError } from '../../custom/error/errors';
 import { IFileStorage } from '../../interfaces/IFileStorage';
 import { FileUtils } from '../../utils/file';
 
@@ -8,7 +7,7 @@ import { FileUtils } from '../../utils/file';
 export class FileStorageService implements IFileStorage {
   async getFileBuffer(filename: string): Promise<Buffer> {
     if (!FileUtils.fileExists(filename)) {
-      throw new VideoNotFoundError();
+      throw new NotFoundException('File not found');
     }
     return readFile(FileUtils.getFullPath(filename));
   }

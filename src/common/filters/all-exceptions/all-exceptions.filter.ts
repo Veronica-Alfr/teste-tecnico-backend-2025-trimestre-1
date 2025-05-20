@@ -7,11 +7,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
-import {
-  InvalidRangeError,
-  VideoNotFoundError,
-} from '../../../custom/error/errors';
-import { IExceptionResponse } from '../../../interfaces/IExceptionResponse';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -21,34 +16,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
-    let errorType = 'Unknown Error';
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    if (exception instanceof HttpException) {
-      status = exception.getStatus();
-      const exceptionResponse = exception.getResponse();
+    const message =
+      exception instanceof HttpException
+        ? exception.message
+        : 'Internal server error';
 
-      if (typeof exceptionResponse === 'object') {
-        const response = exceptionResponse as IExceptionResponse;
-        message = response.message || exception.message;
-        errorType = response.error || exception.name;
-      } else {
-        message = exceptionResponse;
-        errorType = exception.name;
-      }
-    } else if (exception instanceof VideoNotFoundError) {
-      status = HttpStatus.NOT_FOUND;
-      message = exception.message;
-      errorType = 'Not Found';
-    } else if (exception instanceof InvalidRangeError) {
-      status = HttpStatus.BAD_REQUEST;
-      message = exception.message;
-      errorType = 'Bad Request';
-    } else if (exception instanceof Error) {
-      message = exception.message;
-      errorType = exception.name;
-    }
+    const errorType =
+      exception instanceof HttpException ? exception.name : 'Unknown Error';
 
     this.logger.error(
       `Exception: ${JSON.stringify({ errorType, message })}, Status: ${status}`,

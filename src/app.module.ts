@@ -5,7 +5,6 @@ import { UploadModule } from './modules/upload/upload.module';
 import { VideoModule } from './modules/video/video.module';
 import { VideoCacheService } from './services/video-cache/video-cache.service';
 import { FileStorageService } from './services/file-storage/file-storage.service';
-import { FileWriterService } from './services/file-writer/file-writer.service';
 import { FileUtils } from './utils/file';
 
 @Module({
@@ -20,11 +19,7 @@ import { FileUtils } from './utils/file';
     UploadModule,
     VideoModule,
   ],
-  providers: [
-    VideoCacheService,
-    FileStorageService,
-    FileWriterService,
-  ],
+  providers: [VideoCacheService, FileStorageService],
 })
 export class AppModule implements OnModuleInit {
   constructor(private configService: ConfigService) {}
